@@ -6,6 +6,7 @@ local M = {}
 ---@param command table
 ---@return string|nil, string|nil
 local run_system = function(command)
+  print("Executing command: " .. table.concat(command, " "))
   local result = vim.fn.trim(vim.fn.system(command))
   if vim.v.shell_error ~= 0 then
     require("gitlab.utils").notify(result, vim.log.levels.ERROR)
@@ -129,8 +130,11 @@ end
 M.get_current_branch = function()
   local current_branch, err = run_system({ "git", "branch", "--show-current" })
   if err or current_branch == "" then
-    require("gitlab.utils").notify("Could not get current branch: " .. err, vim.log.levels.ERROR)
-    return nil
+    -- This code breaks if I am in the jujutsu vcs mode.
+    -- Since jujutsu uses commits as working copy instead of a branch,
+    -- this code returns nil. Hence as a workaround, return "main" as the default branch.
+    -- require("gitlab.utils").notify("Could not get current branch: " .. err, vim.log.levels.ERROR)
+    return "main"
   end
   return current_branch
 end
